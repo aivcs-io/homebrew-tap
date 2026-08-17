@@ -5,7 +5,7 @@ class Aivcs < Formula
   desc "AI Version Control System for Autonomous Agent Swarms"
   homepage "https://aivcs.io"
   url "https://github.com/aivcs-io/aivcs/archive/refs/tags/v0.4.2.tar.gz"
-  sha256 "0012e49893e2e3ad289a62add3325c080dbee32b2e039fdbd9859c1ffed75283"
+  sha256 "3d3833080b46ab85131c6951e12debf4a567207034cd09dcfdb6fd26d8431d12"
   license "Apache-2.0"
 
   depends_on "rust" => :build
