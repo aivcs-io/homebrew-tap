@@ -1,0 +1,35 @@
+# propel.toml — sandlot / aivcs-propel checks (no GitHub Actions).
+# Run locally:  nix develop --command aivcs-propel pipeline
+# On forge PR:  sandlot dispatches aivcs-propel check against this repo.
+
+[package]
+name = "homebrew-tap"
+version = "0.1.0"
+description = "Official Homebrew tap for AIVCS CLI distribution"
+
+[[checks]]
+name = "secret-scan"
+command = "nix develop --command gitleaks detect --source . --no-git --exit-code 1 --redact"
+required = true
+
+[[checks]]
+name = "formula-syntax"
+command = "ruby -c Formula/aivcs.rb"
+required = true
+
+[[checks]]
+name = "tap-release-gate"
+command = "nix run .#tap-release-gate"
+required = true
+
+[policy]
+requires_human_approval = true
+secrets_scope = "ci/repos/aivcs-io/homebrew-tap"
+allowed_orgs = ["aivcs-io"]
+allowed_refs = ["refs/heads/main"]
+
+[propel]
+enabled = true
+provider = "propel.aivcs.io"
+github_status_checks = true
+github_pr_comments = true
