@@ -14,18 +14,18 @@ class Aivcs < Formula
   on_macos do
     on_arm do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-darwin-arm64"
-      sha256 "e22a4353948633f3de68690776715fee0b3c1a7dc3e5213a6811196699d672bd"
+      sha256 "dd6110fac9d4e39d9a34dffc407c3177e0e4bb6e68f9664dc825fb65aa46ffeb"
     end
   end
 
   on_linux do
     on_arm do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-arm64"
-      sha256 "0972d6bfdbdb94df8e51af79eb8555ec26a85d12db9ffb4ff9b06be053a1e30f"
+      sha256 "31997217c5906df7e0614f14f08547a7bb99c4e9f5f827894e3c17c2e20395ab"
     end
     on_intel do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-x86_64"
-      sha256 "55e4693027feec4998cd1221de246f0babdc51436409e13c3d37e63d1a0861ab"
+      sha256 "c757692e429efdedb7404bacb6261af9421a5d19677cbab1f09061f9b5bd9456"
     end
   end
 
