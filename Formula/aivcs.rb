@@ -7,25 +7,21 @@ class Aivcs < Formula
   version "0.4.4"
   license "Apache-2.0"
 
-  # Prebuilt release binaries from https://github.com/aivcs-io/aivcs/releases
-  # (pour — no local Rust compile). Source tarball remains available upstream
-  # for anyone who wants to build from source outside Homebrew.
-
   on_macos do
     on_arm do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-darwin-arm64"
-      sha256 "dd6110fac9d4e39d9a34dffc407c3177e0e4bb6e68f9664dc825fb65aa46ffeb"
+      sha256 "2dfaadf70e7e7c74ef02d74df901935f9f31804bf0b98daa3a056b3170fcfed2"
     end
   end
 
   on_linux do
     on_arm do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-arm64"
-      sha256 "31997217c5906df7e0614f14f08547a7bb99c4e9f5f827894e3c17c2e20395ab"
+      sha256 "df01573801c8719d9b7436d1b63958a7fba23b17237b168496af87799fc7f2c3"
     end
     on_intel do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-x86_64"
-      sha256 "c757692e429efdedb7404bacb6261af9421a5d19677cbab1f09061f9b5bd9456"
+      sha256 "c1ca82603c9fb2dc8893563e11d584806add513b18690dfb3ff4854c955c9cf4"
     end
   end
 
