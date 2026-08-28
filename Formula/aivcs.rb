@@ -7,21 +7,24 @@ class Aivcs < Formula
   version "0.5.0"
   license "Apache-2.0"
 
+  # Prebuilt release binaries from https://github.com/aivcs-io/aivcs/releases
+  # SHA256 placeholders replaced at cut time to match SHA256SUMS.
+
   on_macos do
     on_arm do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-darwin-arm64"
-      sha256 "ae60c884ba9d2b25a4b2752b40600b50ae22c106b0395b1bf1c8125ef8920ab0"
+      sha256 "3270e03e9e7569b20be4282d6b3c6d065f80d1a47231af06f447a6a7838f14a7"
     end
   end
 
   on_linux do
     on_arm do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-arm64"
-      sha256 "9dcb8511a7772da272252d5a61eeb9971601eab3568d858ff5cc57e0acf7eced"
+      sha256 "7fd5a038851d6d58c16ff75bb44c8a44a730c2759cdd75b77f8943d8c6d48899"
     end
     on_intel do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-x86_64"
-      sha256 "d35bc3a8b43a400b88dca0743f696071aa9ada2cd0c150fa834cb248a3bbdda1"
+      sha256 "acad047708a6bc20c8f874e3b896160a6a7a68faa1ba1c69efc2895647ea1918"
     end
   end
 
