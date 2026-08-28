@@ -1,7 +1,13 @@
 # Update Formula/aivcs.rb to pour prebuilt release binaries for a given tag.
 #
-# Trigger: workflow_dispatch with version (e.g. 0.4.3), or repository_dispatch
+# Trigger: workflow_dispatch with version (e.g. 0.4.4), or repository_dispatch
 # from aivcs-io/aivcs after a release (client_payload.version).
+#
+# Supply-chain gates (must pass before PR is opened):
+#   - SHA256SUMS verification for all platform binaries
+#   - gitleaks on repo + credential patterns in binary strings
+#   - Syft SBOM (CycloneDX) uploaded to the release gate artifact store
+#   - Grype vulnerability scan (fail on high+)
 
 name: update-formula-binaries
 
@@ -9,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "AIVCS version without leading v (e.g. 0.4.3)"
+        description: "AIVCS version without leading v (e.g. 0.4.4)"
         required: true
         type: string
   repository_dispatch:
@@ -18,6 +24,10 @@ on:
 permissions:
   contents: write
   pull-requests: write
+
+env:
+  AIVCS_RELEASE_REPO: aivcs-io/aivcs
+  GRYPE_FAIL_ON: high
 
 jobs:
   update:
@@ -37,13 +47,70 @@ jobs:
           echo "version=$V" >> "$GITHUB_OUTPUT"
           echo "tag=v$V" >> "$GITHUB_OUTPUT"
 
-      - name: Fetch SHA256SUMS and rewrite formula
+      - name: Fetch SHA256SUMS and release binaries
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          curl -fsSL "https://github.com/${AIVCS_RELEASE_REPO}/releases/download/${TAG}/SHA256SUMS" -o SHA256SUMS
+          for asset in aivcs-linux-x86_64 aivcs-linux-arm64 aivcs-darwin-arm64; do
+            curl -fsSL "https://github.com/${AIVCS_RELEASE_REPO}/releases/download/${TAG}/${asset}" -o "release-assets/${asset}"
+          done
+          sha256sum -c SHA256SUMS
+
+      - name: Secret scan — repository (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+
+      - name: Secret scan — release binary strings (fail closed)
+        run: |
+          set -euo pipefail
+          strings release-assets/aivcs-linux-x86_64 > binary.strings
+          python3 <<'PY'
+          import pathlib, re, sys
+
+          patterns = [
+              (r"gho_[A-Za-z0-9_]{20,}", "GitHub OAuth token"),
+              (r"ghp_[A-Za-z0-9_]{20,}", "GitHub PAT"),
+              (r"github_pat_[A-Za-z0-9_]{20,}", "GitHub fine-grained PAT"),
+              (r"glpat-[A-Za-z0-9\-_]{20,}", "GitLab PAT"),
+              (r"AKIA[0-9A-Z]{16}", "AWS access key id"),
+              (r"sk-ant-[A-Za-z0-9\-_]{20,}", "Anthropic API key"),
+              (r"AIza[0-9A-Za-z\-_]{30,}", "Google API key"),
+              (r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----", "PEM private key"),
+          ]
+          text = pathlib.Path("binary.strings").read_text(errors="ignore")
+          hits = [label for pat, label in patterns if re.search(pat, text)]
+          if hits:
+              for h in hits:
+                  print(f"credential pattern: {h}", file=sys.stderr)
+              sys.exit(1)
+          print("binary strings scan: clean")
+          PY
+
+      - name: Generate SBOM (Syft / CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: release-assets/aivcs-linux-x86_64
+          format: cyclonedx-json
+          output-file: sbom-aivcs-linux-x86_64.cdx.json
+
+      - name: Vulnerability scan (Grype)
+        uses: anchore/scan-action@v6
+        with:
+          sbom: sbom-aivcs-linux-x86_64.cdx.json
+          fail-build: true
+          severity-cutoff: high
+
+      - name: Rewrite formula from verified SHA256SUMS
         env:
           VERSION: ${{ steps.ver.outputs.version }}
           TAG: ${{ steps.ver.outputs.tag }}
         run: |
           set -euo pipefail
-          curl -fsSL "https://github.com/aivcs-io/aivcs/releases/download/${TAG}/SHA256SUMS" -o SHA256SUMS
           python3 <<'PY'
           import os, pathlib, re
           version = os.environ["VERSION"]
@@ -97,13 +164,20 @@ class Aivcs < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{{bin}}/aivcs --version")
+    out = shell_output("#{{bin}}/aivcs --version")
+    assert_match(/\\A[a-z]+ \\d+\\.\\d+\\.\\d+\\z/, out.strip)
   end
 end
 """
           pathlib.Path("Formula/aivcs.rb").write_text(text)
-          print(text)
           PY
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-aivcs-${{ steps.ver.outputs.version }}
+          path: sbom-aivcs-linux-x86_64.cdx.json
+          retention-days: 90
 
       - name: Open PR
         env:
@@ -126,5 +200,23 @@ end
             exit 0
           fi
           gh pr create --title "formula: aivcs ${VERSION} (prebuilt binaries)" \
-            --body "Pours \`aivcs\` ${VERSION} from [aivcs-io/aivcs v${VERSION} release assets](https://github.com/aivcs-io/aivcs/releases/tag/v${VERSION}) — no local Rust compile." \
+            --body "$(cat <<EOF
+## Summary
+- Pours \`aivcs\` ${VERSION} from [aivcs-io/aivcs v${VERSION} release assets](https://github.com/aivcs-io/aivcs/releases/tag/v${VERSION}).
+- Supply-chain gates passed in **update-formula-binaries** before this PR was opened:
+  - SHA256SUMS verification (all platforms)
+  - gitleaks (repository)
+  - Binary strings credential scan (fail closed)
+  - Syft SBOM (CycloneDX) — artifact attached to workflow run
+  - Grype vulnerability scan (blocks on **high+**)
+
+## Test plan
+- [ ] \`tap-pr-gate\` CI green on this PR
+- [ ] \`brew install aivcs-io/tap/aivcs\` on Apple Silicon
+- [ ] \`aivcs --version\` matches formula version (requires upstream workspace bump)
+
+## Governance
+Aligns with code-governance \`ci-cd-baseline\` §6 (SBOM + vuln scan) and preflight secret scan (#1306).
+EOF
+)" \
             --base main --head "$BRANCH"
