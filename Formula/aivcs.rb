@@ -4,7 +4,7 @@
 class Aivcs < Formula
   desc "AI Version Control System for Autonomous Agent Swarms"
   homepage "https://aivcs.io"
-  version "0.4.3"
+  version "0.4.4"
   license "Apache-2.0"
 
   # Prebuilt release binaries from https://github.com/aivcs-io/aivcs/releases
