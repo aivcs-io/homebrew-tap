@@ -9,8 +9,8 @@ class Aivcs < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-darwin-arm64"
-      sha256 "ae60c884ba9d2b25a4b2752b40600b50ae22c106b0395b1bf1c8125ef8920ab0"
+      url "https://github.com/aivcs-io/aivcs/archive/refs/tags/v0.5.2.tar.gz"
+      sha256 "bb86f5f17bdcde56b81f89bcdf2cd981e09fe76fe3b354944c8098701dc60213"
     end
   end
 
