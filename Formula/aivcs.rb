@@ -3,25 +3,25 @@
 
 class Aivcs < Formula
   desc "AI Version Control System for Autonomous Agent Swarms"
-  homepage "https://aivcs.io"
-  version "0.5.0"
+  homepage "https://github.com/aivcs-io/aivcs"
+  version "0.5.2"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/aivcs-io/aivcs/archive/refs/tags/v0.5.2.tar.gz"
-      sha256 "bb86f5f17bdcde56b81f89bcdf2cd981e09fe76fe3b354944c8098701dc60213"
+      url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-darwin-arm64"
+      sha256 "b08bc2adf893292094a3e5f7da2849d58ad4d30afb4bcfd18f403090e2b0f8c8"
     end
   end
 
   on_linux do
     on_arm do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-arm64"
-      sha256 "9dcb8511a7772da272252d5a61eeb9971601eab3568d858ff5cc57e0acf7eced"
+      sha256 "e53362214295d666184caf0e48358825d1788be7a20d0006d98d18c72160d9c2"
     end
     on_intel do
       url "https://github.com/aivcs-io/aivcs/releases/download/v#{version}/aivcs-linux-x86_64"
-      sha256 "d35bc3a8b43a400b88dca0743f696071aa9ada2cd0c150fa834cb248a3bbdda1"
+      sha256 "3a480b63f6f4063723e1aec5b39a68273e6e7d12144cfb2ada5a068e8030aed7"
     end
   end
 
